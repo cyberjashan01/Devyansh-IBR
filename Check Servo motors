@@ -1,0 +1,19 @@
+#include <Servo.h>
+
+Servo myServo;  // Create a servo object
+
+const int servoPin = 4;  // Define the pin connected to the servo
+
+void setup() {
+  myServo.attach(servoPin);  // Attach the servo to GPIO pin 4
+}
+
+void loop() {
+  // Move the servo to 0 degrees and hold for 5 seconds
+  myServo.write(0);
+  delay(1000);
+
+  // Move the servo to 90 degrees and hold for 5 seconds
+  myServo.write(90);
+  delay(1000);
+}
