@@ -1,0 +1,48 @@
+#include <Servo.h>
+
+Servo myServo;  // Create a servo object
+
+const int servoPin = 4;      // Pin connected to the servo
+const int trigPin = 8;       // Pin connected to the Trig pin of HC-SR04
+const int echoPin = 7;       // Pin connected to the Echo pin of HC-SR04
+
+long duration;
+int distance;
+
+void setup() {
+  myServo.attach(servoPin);       // Attach the servo to GPIO pin 4
+  pinMode(trigPin, OUTPUT);       // Set Trig pin as output
+  pinMode(echoPin, INPUT);        // Set Echo pin as input
+  myServo.write(0);               // Initialize servo to 0 degrees
+  Serial.begin(9600);             // Begin serial communication for debugging
+}
+
+void loop() {
+  // Send a 10us pulse to trigger the sensor
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // Measure the pulse duration on the echo pin
+  duration = pulseIn(echoPin, HIGH);
+
+  // Calculate distance (duration * speed of sound / 2)
+  distance = duration * 0.034 / 2;
+
+  // Print distance to Serial Monitor
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  // Control the servo based on distance
+  if (distance < 100) {  // If object is within 10 cm
+    myServo.write(90);  
+    delay(2000);                // Move servo to 90 degrees
+  }
+    myServo.write(0);                   // Move servo back to 0 degrees
+  
+
+  delay(500);  // Wait 500 ms before taking another reading
+}
