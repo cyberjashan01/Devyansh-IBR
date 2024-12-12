@@ -1,0 +1,37 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2); // Use the correct I2C address
+
+void setup() {
+  lcd.init();       // Initialize the LCD
+  lcd.backlight();  // Turn on the backlight
+}
+
+void loop() {
+  lcd.clear();       // Clear the display
+  lcd.setCursor(0, 0); // Set cursor to the first line
+  lcd.print("Hello, World!");
+  delay(3000);
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Welcome to");
+  lcd.setCursor(0, 1); // Set cursor to the second line
+  lcd.print("the Temple!");
+  delay(3000);
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Time");
+  lcd.setCursor(0, 1);
+  lcd.print("HH:MM:SS"); // Placeholder for time
+  delay(3000);
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Visitors Today:");
+  lcd.setCursor(0, 1);
+  lcd.print("123"); // Placeholder for the visitor count
+  delay(3000);
+}
