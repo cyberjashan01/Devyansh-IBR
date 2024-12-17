@@ -1,0 +1,31 @@
+#include <Servo.h>        // Include the Servo library
+
+// Pin definitions
+const int servoPin = 4;     // Pin connected to the servo motor
+const int ledPin = 9;       // Pin connected to the Red LED
+
+Servo myServo;  // Create a Servo object
+
+void setup() {
+  myServo.attach(servoPin);     // Attach the servo to GPIO pin 4
+  pinMode(ledPin, OUTPUT);      // Set Red LED pin as output
+  myServo.write(0);             // Initialize the servo to 0 degrees (gate closed)
+  Serial.begin(9600);           // Begin serial communication for debugging
+}
+
+void loop() {
+  // Control the servo based on a condition (For example, a timer or external input)
+  // In this example, I will open the gate every 5 seconds and then close it again.
+
+  // Open the gate (servo to 90 degrees)
+  myServo.write(90);   // Move the servo to 90 degrees (open the gate)
+  digitalWrite(ledPin, HIGH);  // Turn on the red LED (gate is open)
+  Serial.println("Gate Opened");  // Print to the serial monitor
+  delay(5000);          // Wait for 5 seconds with the gate open
+
+  // Close the gate (servo back to 0 degrees)
+  myServo.write(0);    // Move the servo back to 0 degrees (close the gate)
+  digitalWrite(ledPin, LOW);   // Turn off the red LED (gate is closed)
+  Serial.println("Gate Closed");  // Print to the serial monitor
+  delay(5000);          // Wait for 5 seconds with the gate closed
+}
