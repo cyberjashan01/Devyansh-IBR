@@ -1,0 +1,78 @@
+#include <Servo.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+// Servo and Ultrasonic Sensor setup
+Servo myServo;  // Create a servo object
+const int servoPin = 4;      // Pin connected to the servo
+const int trigPin = 8;       // Pin connected to the Trig pin of HC-SR04
+const int echoPin = 7;       // Pin connected to the Echo pin of HC-SR04
+
+long duration;
+int distance;
+int gateOpenCount = 0; // Counter for the number of times the gate was opened
+
+// LCD setup
+LiquidCrystal_I2C lcd(0x27, 16, 2);  // I2C address, 16 columns, 2 rows
+
+void setup() {
+  // Servo setup
+  myServo.attach(servoPin);          // Attach the servo to GPIO pin 4
+  pinMode(trigPin, OUTPUT);          // Set Trig pin as output
+  pinMode(echoPin, INPUT);           // Set Echo pin as input
+  myServo.write(0);                  // Initialize servo to 0 degrees
+
+  // LCD setup
+  lcd.begin(16, 2);                  // Initialize the LCD with 16 columns and 2 rows
+  lcd.backlight();
+  
+  // Display initial messages on the LCD
+  lcd.setCursor(0, 0);
+  lcd.print("Hello");
+  delay(5000);                       // Display "Hello" for 5 seconds
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Welcome");
+  delay(5000);                       // Display "Welcome" for 5 seconds
+  lcd.clear();
+
+  // Begin serial communication for debugging
+  Serial.begin(9600);
+}
+
+void loop() {
+  // Send a 10us pulse to trigger the sensor
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // Measure the pulse duration on the echo pin
+  duration = pulseIn(echoPin, HIGH);
+
+  // Calculate distance (duration * speed of sound / 2)
+  distance = duration * 0.034 / 2;
+
+  // Print distance to Serial Monitor
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  // Control the servo based on distance
+  if (distance < 10) {  // If object is within 10 cm
+    myServo.write(90);  // Move servo to 90 degrees
+    delay(2000);        // Wait for 2 seconds
+    myServo.write(0);   // Move servo back to 0 degrees
+    gateOpenCount++;    // Increment the gate open counter
+  }
+
+  // Display the gate open count on the LCD
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Gate Opened:");
+  lcd.setCursor(0, 1);
+  lcd.print(gateOpenCount);
+
+  delay(500);  // Wait 500 ms before taking another reading
+}
