@@ -1,71 +1,72 @@
-#include <Servo.h>
+#include <Servo.h>  // Include the Servo library
 
-// Define pin numbers for LEDs, sensors, and servo
-const int greenLED = 2;
-const int yellowLED = 3;
-const int redLED = 4;
-const int irSensorPin = 8;
-const int flameSensorPin = 7;
-const int servoPin = 9;
+// Pin definitions
+const int irSensorPin = 2;  // IR sensor input pin
+const int greenLedPin = 12;  // Green LED pin
+const int yellowLedPin = 13;  // Yellow LED pin
+const int redLedPin = 11;  // Red LED pin
+const int servoPin = 9;  // Servo motor pin
+const int flameSensorPin = 3;  // Flame sensor input pin
 
-// Create Servo object
-Servo gateServo;
+// Create a servo object
+Servo myServo;
+
+// Variables to store the sensor states
+int irSensorState = 0;  // Variable to hold IR sensor state
+int flameSensorState = 0;  // Variable to hold flame sensor state
 
 void setup() {
-  // Initialize LED pins
-  pinMode(greenLED, OUTPUT);
-  pinMode(yellowLED, OUTPUT);
-  pinMode(redLED, OUTPUT);
-
-  // Initialize sensor pins
-  pinMode(irSensorPin, INPUT);
-  pinMode(flameSensorPin, INPUT);
-
-  // Attach the servo to the specified pin
-  gateServo.attach(servoPin);
-
-  // Start with the gate closed (servo at 0°)
-  gateServo.write(0);
+  // Initialize the pins
+  pinMode(irSensorPin, INPUT);  // IR sensor as input
+  pinMode(greenLedPin, OUTPUT);  // Green LED as output
+  pinMode(yellowLedPin, OUTPUT);  // Yellow LED as output
+  pinMode(redLedPin, OUTPUT);  // Red LED as output
+  pinMode(flameSensorPin, INPUT);  // Flame sensor as input
+  myServo.attach(servoPin);  // Attach the servo to the servo pin
   
-  // Turn on the green LED (gate is at rest)
-  digitalWrite(greenLED, HIGH);
-  digitalWrite(yellowLED, LOW);
-  digitalWrite(redLED, LOW);
+  // Initial state setup
+  digitalWrite(greenLedPin, HIGH);  // Green LED on (default)
+  digitalWrite(yellowLedPin, LOW);  // Yellow LED off
+  digitalWrite(redLedPin, LOW);  // Red LED off initially
+  myServo.write(0);  // Servo in the closed position (0 degrees)
 }
 
 void loop() {
-  // Check for flame detection
-  int flameDetected = digitalRead(flameSensorPin);
+  // Read the state of the IR sensor and flame sensor
+  irSensorState = digitalRead(irSensorPin);
+  flameSensorState = digitalRead(flameSensorPin);
   
-  if (flameDetected == HIGH) {
-    // Flame detected, turn on the red LED
-    digitalWrite(redLED, HIGH);
-  } else {
-    // No flame detected, turn off the red LED
-    digitalWrite(redLED, LOW);
+  // Condition 1: Flame Detection
+  if (flameSensorState == HIGH) {
+    // Flame detected, turn on red LED
+    digitalWrite(redLedPin, HIGH);  // Red LED on
+    digitalWrite(greenLedPin, LOW);  // Green LED off (only for IR detection)
+    myServo.write(0);  // Servo closed
   }
-
-  // Check for IR sensor detection
-  int irDetected = digitalRead(irSensorPin);
-
-  if (irDetected == HIGH) {
-    // Object detected by IR sensor
-    // Turn off green LED and turn on yellow LED
-    digitalWrite(greenLED, LOW);
-    digitalWrite(yellowLED, HIGH);
+  // Condition 2: IR Sensor Detection
+  else if (irSensorState == HIGH) {
+    // Person detected, turn on yellow LED for 3 seconds
+    digitalWrite(greenLedPin, LOW);  // Green LED off
+    digitalWrite(yellowLedPin, HIGH);  // Yellow LED on
     
-    // Open the gate by moving the servo from 0° to 90°
-    gateServo.write(90);
-    delay(5000); // Wait for 5 seconds with the gate open
-
-    // Close the gate by moving the servo back to 0°
-    gateServo.write(0);
-
-    // After moving, turn off yellow LED and turn on green LED again
-    digitalWrite(yellowLED, LOW);
-    digitalWrite(greenLED, HIGH);
-
-    // Wait before checking the sensors again
-    delay(2000);
+    // Open the servo motor for 3 seconds
+    myServo.write(90);  // Open the servo (90 degrees)
+    delay(3000);  // Wait for 3 seconds
+    
+    // Close the servo motor after 3 seconds
+    myServo.write(0);  // Servo closed
+    
+    // Turn off the yellow LED after 3 seconds
+    digitalWrite(yellowLedPin, LOW);  // Yellow LED off
+  }
+  // Condition 3: Idle (No Flame and No Person Detected)
+  else {
+    // No flame and no person detected, turn on green LED
+    digitalWrite(greenLedPin, HIGH);  // Green LED on
+    digitalWrite(yellowLedPin, LOW);  // Yellow LED off
+    digitalWrite(redLedPin, LOW);  // Red LED off
+    
+    // Keep the servo closed
+    myServo.write(0);  // Servo closed
   }
 }
