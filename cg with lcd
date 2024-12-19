@@ -1,0 +1,75 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <Servo.h>
+
+// Pin definitions
+const int irSensorPin = 2;   // IR sensor input pin
+const int servoPin = 9;       // Servo motor control pin
+
+// Create Servo object
+Servo gateServo;
+
+// Create LCD object (address 0x27 is common for many LCDs)
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// Variables
+int peopleVisited = 0;        // Counter for people visited
+int irSensorState = 0;        // Store current state of IR sensor (HIGH or LOW)
+
+void setup() {
+  // Start serial communication for debugging
+  Serial.begin(9600);
+  
+  // Initialize the IR sensor pin
+  pinMode(irSensorPin, INPUT);
+  
+  // Initialize the servo motor
+  gateServo.attach(servoPin);
+  gateServo.write(0); // Initial position of the gate (closed)
+  
+  // Initialize the LCD
+  lcd.begin(16, 2);
+  lcd.setBacklight(1);  // Turn on the backlight
+  
+  // Print initial message on LCD
+  lcd.setCursor(0, 0);
+  lcd.print("People Visited: ");
+  lcd.setCursor(0, 1);
+  lcd.print(peopleVisited);
+}
+
+void loop() {
+  irSensorState = digitalRead(irSensorPin); // Read IR sensor
+
+  // If object is detected (IR sensor is triggered)
+  if (irSensorState == HIGH) {
+    // Open the gate (servo moves to 90 degrees)
+    gateServo.write(90);
+    delay(2000); // Wait for 2 seconds to let the gate open completely
+
+    // Wait for 5 seconds (person enters)
+    delay(5000);
+
+    // Close the gate (servo moves back to 0 degrees)
+    gateServo.write(0);
+    delay(2000); // Wait for the gate to close
+
+    // Increment people visited count
+    peopleVisited++;
+    
+    // Update LCD with the new count
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("People Visited: ");
+    lcd.setCursor(0, 1);
+    lcd.print(peopleVisited);
+    
+    // Wait for IR sensor to go LOW (object leaves the sensor's range)
+    while(digitalRead(irSensorPin) == HIGH) {
+      delay(100);
+    }
+  }
+
+  // Add a small delay to avoid excessive checking
+  delay(100);
+}
