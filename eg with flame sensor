@@ -1,0 +1,71 @@
+#include <Servo.h>
+
+// Define pin numbers for LEDs, sensors, and servo
+const int greenLED = 2;
+const int yellowLED = 3;
+const int redLED = 4;
+const int irSensorPin = 8;
+const int flameSensorPin = 7;
+const int servoPin = 9;
+
+// Create Servo object
+Servo gateServo;
+
+void setup() {
+  // Initialize LED pins
+  pinMode(greenLED, OUTPUT);
+  pinMode(yellowLED, OUTPUT);
+  pinMode(redLED, OUTPUT);
+
+  // Initialize sensor pins
+  pinMode(irSensorPin, INPUT);
+  pinMode(flameSensorPin, INPUT);
+
+  // Attach the servo to the specified pin
+  gateServo.attach(servoPin);
+
+  // Start with the gate closed (servo at 0°)
+  gateServo.write(0);
+  
+  // Turn on the green LED (gate is at rest)
+  digitalWrite(greenLED, HIGH);
+  digitalWrite(yellowLED, LOW);
+  digitalWrite(redLED, LOW);
+}
+
+void loop() {
+  // Check for flame detection
+  int flameDetected = digitalRead(flameSensorPin);
+  
+  if (flameDetected == HIGH) {
+    // Flame detected, turn on the red LED
+    digitalWrite(redLED, HIGH);
+  } else {
+    // No flame detected, turn off the red LED
+    digitalWrite(redLED, LOW);
+  }
+
+  // Check for IR sensor detection
+  int irDetected = digitalRead(irSensorPin);
+
+  if (irDetected == HIGH) {
+    // Object detected by IR sensor
+    // Turn off green LED and turn on yellow LED
+    digitalWrite(greenLED, LOW);
+    digitalWrite(yellowLED, HIGH);
+    
+    // Open the gate by moving the servo from 0° to 90°
+    gateServo.write(90);
+    delay(5000); // Wait for 5 seconds with the gate open
+
+    // Close the gate by moving the servo back to 0°
+    gateServo.write(0);
+
+    // After moving, turn off yellow LED and turn on green LED again
+    digitalWrite(yellowLED, LOW);
+    digitalWrite(greenLED, HIGH);
+
+    // Wait before checking the sensors again
+    delay(2000);
+  }
+}
