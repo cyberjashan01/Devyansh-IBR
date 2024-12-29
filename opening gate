@@ -1,55 +1,77 @@
-#include <Servo.h>  // Include the Servo library
+#include <Servo.h>
 
-// Pin definitions
-const int irSensorPin = 2;  // IR sensor input pin
-const int greenLedPin = 12;  // Green LED pin
-const int redLedPin = 13;  // Red LED pin
-const int servoPin = 9;  // Servo motor pin
+Servo gateServo;
 
-// Create a servo object
-Servo myServo;
+const int irSensorPin = 2;
+const int flameSensorPin = 3;
+const int greenLedPin = 12;
+const int yellowLedPin = 11;
+const int redLedPin = 13;
 
-// Variables to store the sensor state
-int irSensorState = 0;  // Variable to hold IR sensor state
+bool isGateOpen = false;
 
 void setup() {
-  // Initialize the pins
-  pinMode(irSensorPin, INPUT);  // IR sensor as input
-  pinMode(greenLedPin, OUTPUT);  // Green LED as output
-  pinMode(redLedPin, OUTPUT);  // Red LED as output
-  myServo.attach(servoPin);  // Attach the servo to the servo pin
-  
-  // Start with LEDs in the correct state (no person detected initially)
-  digitalWrite(greenLedPin, LOW);  // Green LED off
-  digitalWrite(redLedPin, HIGH);  // Red LED on
-  myServo.write(0);  // Servo in the closed position
+  // Initialize LEDs as outputs
+  pinMode(greenLedPin, OUTPUT);
+  pinMode(yellowLedPin, OUTPUT);
+  pinMode(redLedPin, OUTPUT);
+
+  // Initialize sensors
+  pinMode(irSensorPin, INPUT);
+  pinMode(flameSensorPin, INPUT);
+
+  // Initialize servo motor
+  gateServo.attach(9);
+  gateServo.write(0); // Close gate at the start
+
+  // Initially, green LED should glow and gate should be closed
+  digitalWrite(greenLedPin, HIGH);
+  digitalWrite(yellowLedPin, LOW);
+  digitalWrite(redLedPin, LOW);
 }
 
 void loop() {
-  // Read the state of the IR sensor
-  irSensorState = digitalRead(irSensorPin);
-  
-  // If a person is detected (IR sensor activated)
-  if (irSensorState == HIGH) {
-    // Person detected, stop red LED, turn on green LED
-    digitalWrite(greenLedPin, HIGH);  // Green LED on
-    digitalWrite(redLedPin, LOW);  // Red LED off
-    
-    // Open the servo motor for 2 seconds
-    myServo.write(90);  // Open the servo (adjust the angle as needed)
-    delay(2000);  // Wait for 2 seconds
-    
-    // Close the servo motor
-    myServo.write(0);  // Close the servo back to 0 degrees
+  int irState = digitalRead(irSensorPin);
+  int flameState = digitalRead(flameSensorPin);
+
+  // If flame is detected, open gate and turn on red LED
+  if (flameState == HIGH) {
+    openGate();
+    digitalWrite(redLedPin, HIGH);
+    digitalWrite(greenLedPin, LOW);
+    digitalWrite(yellowLedPin, LOW);
+    delay(2000); // Keep gate open for flame detection
+    closeGate();
+    digitalWrite(redLedPin, LOW);
   }
 
-  // If no person is detected
-  if (irSensorState == LOW) {
-    // Person not detected, stop green LED, turn on red LED
-    digitalWrite(greenLedPin, LOW);  // Green LED off
-    digitalWrite(redLedPin, HIGH);  // Red LED on
-    
-    // Keep the servo closed
-    myServo.write(0);  // Ensure the servo remains in the closed position
+  // If IR sensor detects something (motion), open gate and turn on yellow LED
+  else if (irState == HIGH && !isGateOpen) {
+    digitalWrite(greenLedPin, LOW);
+    digitalWrite(yellowLedPin, HIGH);
+    openGate();
+    delay(5000); // Keep gate open for 5 seconds
+    closeGate();
+    digitalWrite(yellowLedPin, LOW);
+    digitalWrite(greenLedPin, HIGH);
+    delay(5000);
   }
+
+  // If no IR or flame, make sure gate is closed and green LED glows
+  else {
+    if (!isGateOpen) {
+      digitalWrite(greenLedPin, HIGH);
+      digitalWrite(yellowLedPin, LOW);
+    }
+  }
+}
+
+void openGate() {
+  gateServo.write(90); // Open gate (servo at 90 degrees)
+  isGateOpen = true;
+}
+
+void closeGate() {
+  gateServo.write(0); // Close gate (servo at 0 degrees)
+  isGateOpen = false;
 }
